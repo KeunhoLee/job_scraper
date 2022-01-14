@@ -9,6 +9,7 @@ pandas = "*"
 beautifulsoup4 = "*"
 ipykernel = "*"
 requests = "*"
+pipfile = "*"
 
 [dev-packages]
 

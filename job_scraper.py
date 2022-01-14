@@ -15,6 +15,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+
+CHROME_DRIVER_PATH = os.environ["CHROME_DRIVER_PATH"]
 
 class WebDriver:
     def __init__(self):
@@ -25,7 +28,7 @@ class WebDriver:
         if not self.is_driver_on:
             chrome_options = webdriver.ChromeOptions()
             chrome_options.add_argument("--headless")
-            webdriver_service = Service('/usr/bin/chromedriver')
+            webdriver_service = Service(CHROME_DRIVER_PATH)
             self.driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
 
             self.is_driver_on = True
@@ -59,7 +62,7 @@ class JobScraper(metaclass=ABCMeta):
 
         self.timestamp = datetime.datetime.now()
         self.job_df = pd.DataFrame()
-        self.file_path = f".storage/{group_name}/"
+        self.file_path = f"./storage/{group_name}/"
         self.file_name = group_name + f"_{self.timestamp.strftime('%Y%m%d%H%M%S')}.csv"
 
     @abstractmethod
@@ -263,9 +266,13 @@ class LineJobScraper(JobScraper):
         for job in job_list:
 
             sub_tags = job.find("div", {"class":"text_filter"}).findAll("span")
-
-            company = sub_tags[1].get_text()
-            skill_set_tag = [sub_tags[2].get_text()]
+            
+            if len(sub_tags):
+                company = sub_tags[1].get_text()
+                skill_set_tag = [sub_tags[2].get_text()]
+            else:
+                company = ""
+                skill_set_tag = [] 
 
             job_link = job.a["href"]
             job_title = job.find("h3", {"class":"title"}).get_text()
@@ -296,8 +303,8 @@ class CoupangJobScraper(JobScraper):
 
     def __init__(self, driver):
         super().__init__(driver, "coupang")
-        self.base_url = "https://rocketyourcareer.kr.coupang.com"
-        self.job_cond = "/%ea%b2%80%ec%83%89-%ec%a7%81%eb%ac%b4"
+        self.base_url = "https://www.coupang.jobs"
+        self.job_cond = "/kr/jobs/?search=&location="
         self.result = []
 
     def _init_for_scrap(self):
@@ -307,7 +314,8 @@ class CoupangJobScraper(JobScraper):
     def _scrap_job_info(self):
         job_items = []
 
-        is_last = ""
+        is_last = False
+        breakpoint()
 
         while not is_last:
             html = self.driver.get_page_src()
@@ -315,11 +323,11 @@ class CoupangJobScraper(JobScraper):
             job_items.extend(soup.findAll("li", {"class":"searched-job-item"}))
 
             try:
+                #TODO: make scroll go to bottom
                 next_btn = WebDriverWait(self.driver.driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "next")))
                 next_btn.click()
             except Exception:
-                next_btn = self.driver.driver.find_element(By.CLASS_NAME, "next")
-                is_last = next_btn.get_attribute("aria-hidden")
+                is_last = True
 
             self.driver.fixed_sleep(2)
 
