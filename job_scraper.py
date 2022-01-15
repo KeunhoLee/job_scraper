@@ -304,32 +304,36 @@ class CoupangJobScraper(JobScraper):
     def __init__(self, driver):
         super().__init__(driver, "coupang")
         self.base_url = "https://www.coupang.jobs"
-        self.job_cond = "/kr/jobs/?search=&location="
+        self.job_cond = "/kr/jobs/?page=1#results"
+        self.max_page = 0
         self.result = []
 
     def _init_for_scrap(self):
         self.driver.browse(self.base_url + self.job_cond)
         self.driver.implicitly_wait(2)
+        
+        html = self.driver.get_page_src()
+        soup = BeautifulSoup(html, 'html.parser')
+        page_number = soup.find('a', {"class": "change_page btn_lst"})
+
+        max_page = re.search("page=(.+?)$", page_number["href"]).group(1)
+        self.max_page = int(max_page)
 
     def _scrap_job_info(self):
         job_items = []
 
-        is_last = False
-        breakpoint()
+        current_page = 1
 
-        while not is_last:
+        while current_page <= self.max_page:
             html = self.driver.get_page_src()
             soup = BeautifulSoup(html, "html.parser")
-            job_items.extend(soup.findAll("li", {"class":"searched-job-item"}))
+            job_items.extend(soup.findAll("a", {"class":"stretched-link"}))
 
-            try:
-                #TODO: make scroll go to bottom
-                next_btn = WebDriverWait(self.driver.driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "next")))
-                next_btn.click()
-            except Exception:
-                is_last = True
+            self.driver.fixed_sleep(1)
+            self.driver.browse(self.base_url + f"/kr/jobs/?page={str(current_page+1)}#results")
+            self.driver.fixed_sleep(1)
 
-            self.driver.fixed_sleep(2)
+            current_page += 1
 
         for job in job_items:
             
