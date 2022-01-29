@@ -211,7 +211,8 @@ class NaverJobScraper(JobScraper):
                 "sml_NL_ci":"NAVER_LABS",
                 "sml_SN_ci":"SNOW",
                 "sml_WM_ci":"WORKS_MOBILE",
-                "sml_WTKR_ci":"Naver_Webtoon"}
+                "sml_WTKR_ci":"Naver_Webtoon",
+                "sml_KR_ci":"NAVER"}
 
         for card in card_list:
 
@@ -225,7 +226,7 @@ class NaverJobScraper(JobScraper):
             for tag in card.find("span", {"class":"tag_area"}).findAll("a"):
                 skill_set_tag.append(tag.get_text())
 
-            self.result.append((company_dict[company], job_link, job_title, deadline, skill_set_tag))
+            self.result.append((company_dict.get(company, company), job_link, job_title, deadline, skill_set_tag))
 
     def _format_job_info(self):
 
