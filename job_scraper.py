@@ -74,7 +74,7 @@ class JobScraper(metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def _format_job_info(self):
+    def _format_job_info(self): #TODO: 형식 통일하여 공통 메서드 만들기
         pass
 
     def _insert_attrs(self):
@@ -312,12 +312,12 @@ class CoupangJobScraper(JobScraper):
     def _init_for_scrap(self):
         self.driver.browse(self.base_url + self.job_cond)
         self.driver.implicitly_wait(2)
-        
+
         html = self.driver.get_page_src()
         soup = BeautifulSoup(html, 'html.parser')
-        page_number = soup.find('a', {"class": "change_page btn_lst"})
+        page_number = soup.find('a', {"rel":"last"})
 
-        max_page = re.search("page=(.+?)$", page_number["href"]).group(1)
+        max_page = page_number.get_text()
         self.max_page = int(max_page)
 
     def _scrap_job_info(self):
@@ -342,8 +342,8 @@ class CoupangJobScraper(JobScraper):
             deadline = np.nan
             skill_set_tag = []
 
-            job_link = job.find("a")["href"]
-            job_title = job.find("h3").get_text()
+            job_link = job["href"]
+            job_title = job.get_text()
 
             self.result.append((company, job_link, job_title, deadline, skill_set_tag))
             
