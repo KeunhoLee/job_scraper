@@ -1,6 +1,11 @@
 #-*- coding:utf-8 -*-
 
-from job_scraper import WebDriver, KakaoJobScraper, NaverJobScraper, LineJobScraper, CoupangJobScraper
+from job_scraper import (WebDriver, 
+                        KakaoJobScraper, 
+                        NaverJobScraper, 
+                        LineJobScraper, 
+                        CoupangJobScraper, 
+                        WoowahanJobScraper)
 
 if __name__ == "__main__":
     
@@ -27,6 +32,11 @@ if __name__ == "__main__":
         coupang_scraper = CoupangJobScraper(web_driver)
         coupang_scraper.scrap()
         print("coupang ok")
+
+        print("woowahan start")
+        coupang_scraper = WoowahanJobScraper(web_driver)
+        coupang_scraper.scrap()
+        print("woowahan ok")
 
     except Exception as e:
         raise e

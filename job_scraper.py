@@ -364,3 +364,70 @@ class CoupangJobScraper(JobScraper):
         job_df = job_df[["company", "job_title", "job_link", "skill_set_tag", "deadline"]]
 
         self.job_df = job_df.reset_index(drop=True)
+
+class WoowahanJobScraper(JobScraper):
+
+    def __init__(self, driver):
+        super().__init__(driver, "woowahan")
+        self.base_url = "https://career.woowahan.com"
+        self.job_cond = "/#recruit-list"
+        self.result = []
+
+    def _init_for_scrap(self):
+        self.driver.browse(self.base_url + self.job_cond)
+        self.driver.implicitly_wait(2)
+
+        # Get scroll height
+        last_height = self.driver.driver.execute_script("return document.body.scrollHeight")
+
+        while True:
+            # Scroll down to bottom
+            self.driver.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+            # Wait to load page
+            time.sleep(1)
+
+            # Calculate new scroll height and compare with last scroll height
+            new_height = self.driver.driver.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+
+    def _scrap_job_info(self):
+        html = self.driver.get_page_src()
+        soup = BeautifulSoup(html, "html.parser")
+
+        area_info_list = soup.findAll("li")
+        area_info_list = [area_info for area_info in area_info_list if area_info.find("a", {"class":"title"})]
+
+        for area_info in area_info_list:
+            company = "woowahan"
+            
+            main_info = area_info.find("a")
+            job_link = main_info["href"]
+            job_title = main_info.find("p").get_text()
+
+            deadline = area_info.findAll("span")[2].get_text().strip()
+            
+            skill_set_tag = area_info.findAll("button", {"type":"button"})
+            skill_set_tag = [skill.get_text().strip() for skill in skill_set_tag if "#" in skill.get_text()]
+
+            self.result.append((company, job_link, job_title, deadline, skill_set_tag))
+            
+    def _format_job_info(self):
+
+        job_df = pd.DataFrame()
+
+        for r in self.result:
+            
+            tmp = {"company":r[0],
+                "job_link":self.base_url + r[1], 
+                "job_title":r[2],
+                "deadline":r[3],
+                "skill_set_tag":[r[4]]}
+
+            job_df = pd.concat([job_df, pd.DataFrame(tmp, columns=tmp.keys())], axis=0)
+
+        job_df = job_df[["company", "job_title", "job_link", "skill_set_tag", "deadline"]]
+
+        self.job_df = job_df.reset_index(drop=True)
