@@ -410,7 +410,8 @@ class WoowahanJobScraper(JobScraper):
             deadline = area_info.findAll("span")[2].get_text().strip()
             
             skill_set_tag = area_info.findAll("button", {"type":"button"})
-            skill_set_tag = [skill.get_text().strip() for skill in skill_set_tag if "#" in skill.get_text()]
+            skill_set_tag = [skill.get_text() for skill in skill_set_tag if "#" in skill.get_text()]
+            skill_set_tag = [skill.replace("#","").strip() for skill in skill_set_tag]
 
             self.result.append((company, job_link, job_title, deadline, skill_set_tag))
             
