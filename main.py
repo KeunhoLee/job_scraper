@@ -6,8 +6,11 @@ from job_scraper import (WebDriver,
                         LineJobScraper, 
                         CoupangJobScraper, 
                         WoowahanJobScraper)
+from utils.SlackMessageSender import SlackMessageSender
 
 if __name__ == "__main__":
+    
+    slack_msg = SlackMessageSender()
     
     # scrap
     web_driver = WebDriver()
@@ -37,6 +40,8 @@ if __name__ == "__main__":
         coupang_scraper = WoowahanJobScraper(web_driver)
         coupang_scraper.scrap()
         print("woowahan ok")
+
+        slack_msg.info("Job scraping succeed")
 
     except Exception as e:
         raise e
