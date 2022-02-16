@@ -1,5 +1,9 @@
 #-*- coding:utf-8 -*-
 
+import os
+import datetime
+
+import pandas as pd
 import fire
 from job_scraper import (JobScraper,
                         WebDriver, 
@@ -9,6 +13,8 @@ from job_scraper import (JobScraper,
                         CoupangJobScraper, 
                         WoowahanJobScraper)
 from utils.SlackMessageSender import SlackMessageSender
+
+DATA_HOME = "./storage"
 
 def scrap_job_list():
     ''' '''
@@ -71,6 +77,57 @@ def scrap_job_list():
         slack_msg.error("All jobs failed")
     else:
         slack_msg.warning(f"Some jobs failed : {failures}")
+
+def merge_data():
+
+    def _load_all_data(data_path=DATA_HOME):
+        company_list = [dir for dir in os.listdir(data_path) if os.path.isdir(dir)]
+
+        jobs_df = pd.DataFrame()
+
+        for company in company_list:
+            file_list = os.listdir(os.path.join(data_path, company))
+            
+            for file in file_list:
+                jobs_df = pd.concat([jobs_df, pd.read_csv(os.path.join(data_path, company, file))], axis=0)
+
+        return jobs_df.reset_index(drop=True)
+
+    def _load_recent_data(data_path=DATA_HOME):
+        company_list = [dir for dir in os.listdir(data_path) if os.path.isdir(dir)]
+
+        jobs_df = pd.DataFrame()
+
+        for company in company_list:
+            file_list = os.listdir(os.path.join(data_path, company))
+            file_list = sorted(file_list, reverse=True)
+            jobs_df = pd.concat([jobs_df, pd.read_csv(os.path.join(data_path, company, file_list[0]))], axis=0)
+
+        return jobs_df.reset_index(drop=True)
+
+    job_file_name = os.path.join(DATA_HOME, "merged_jobs.csv")
+
+    if os.path.isfile(job_file_name):
+        old = pd.read_csv(job_file_name)
+        jobs_df = _load_recent_data()
+        
+        merged = pd.concat([old, jobs_df], axis=0)
+        merged = merged.sort_values(
+        by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
+        )
+        merged = merged.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
+        merged["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        merged.to_csv(job_file_name, index=False)
+    else:
+        jobs_df = _load_all_data()
+        jobs_df = jobs_df.sort_values(
+        by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
+        )
+        jobs_df = jobs_df.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
+        jobs_df["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        jobs_df.to_csv(job_file_name, index=False)
 
 def scrap_job_texts():
     ''' '''
