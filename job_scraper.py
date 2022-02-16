@@ -55,8 +55,12 @@ class WebDriver:
         self.is_driver_on = False
 
 class JobScraper(metaclass=ABCMeta):
+    
+    num_companies = 0
 
     def __init__(self, driver, group_name):
+        JobScraper.num_companies += 1
+
         self.driver = driver
         self.group_name = group_name
 
