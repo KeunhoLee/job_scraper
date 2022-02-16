@@ -81,7 +81,8 @@ def scrap_job_list():
 def merge_data():
 
     def _load_all_data(data_path=DATA_HOME):
-        company_list = [dir for dir in os.listdir(data_path) if os.path.isdir(dir)]
+        
+        company_list = [dir for dir in os.listdir(data_path) if ".csv" not in dir]
 
         jobs_df = pd.DataFrame()
 
@@ -94,7 +95,7 @@ def merge_data():
         return jobs_df.reset_index(drop=True)
 
     def _load_recent_data(data_path=DATA_HOME):
-        company_list = [dir for dir in os.listdir(data_path) if os.path.isdir(dir)]
+        company_list = [dir for dir in os.listdir(data_path) if ".csv" not in dir]
 
         jobs_df = pd.DataFrame()
 
