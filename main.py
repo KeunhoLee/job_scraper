@@ -1,5 +1,6 @@
 #-*- coding:utf-8 -*-
 
+import fire
 from job_scraper import (WebDriver, 
                         KakaoJobScraper, 
                         NaverJobScraper, 
@@ -8,8 +9,7 @@ from job_scraper import (WebDriver,
                         WoowahanJobScraper)
 from utils.SlackMessageSender import SlackMessageSender
 
-if __name__ == "__main__":
-    
+def scrap_jobs():
     slack_msg = SlackMessageSender()
     
     # scrap
@@ -48,3 +48,9 @@ if __name__ == "__main__":
 
     finally:    
         web_driver.close()
+
+def scrap_job_docs():
+    pass
+
+if __name__ == "__main__":
+    fire.Fire()    

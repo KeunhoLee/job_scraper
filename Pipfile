@@ -10,6 +10,7 @@ beautifulsoup4 = "*"
 ipykernel = "*"
 requests = "*"
 pipfile = "*"
+fire = "*"
 
 [dev-packages]
 
