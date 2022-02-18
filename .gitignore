@@ -5,3 +5,4 @@ storage/
 *.pyc
 *.pkl
 job_html/
+test*
