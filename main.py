@@ -115,18 +115,23 @@ def merge_data():
             old = pd.read_csv(job_file_name)
             jobs_df = _load_recent_data()
             
-            merged = pd.concat([old, jobs_df], axis=0)
+            # old에 없던 data를 new로 따로 저장
+            new_jobs = [job for job in jobs_df.job_link if job not in old.job_link.to_list()]
+            new = jobs_df[jobs_df.job_link.isin(new_jobs)]
+
+            merged = pd.concat([old, new], axis=0)
             merged = merged.sort_values(
-            by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
+                by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
             )
             merged = merged.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
             merged["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
+            new.to_csv(os.path.join(DATA_HOME, "new.csv"), index=False)
             merged.to_csv(job_file_name, index=False)
         else:
             jobs_df = _load_all_data()
             jobs_df = jobs_df.sort_values(
-            by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
+                by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
             )
             jobs_df = jobs_df.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
             jobs_df["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

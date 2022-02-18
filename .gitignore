@@ -3,3 +3,6 @@ storage/
 *.lock
 *.ipynb
 *.pyc
+*.pkl
+job_html/
+test*

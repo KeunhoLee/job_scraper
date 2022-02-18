@@ -7,12 +7,14 @@ name = "pypi"
 selenium = "*"
 pandas = "*"
 beautifulsoup4 = "*"
-ipykernel = "*"
 requests = "*"
 pipfile = "*"
 fire = "*"
 
 [dev-packages]
+python-dotenv = "*"
+tqdm = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.8"
