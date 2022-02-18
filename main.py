@@ -79,6 +79,9 @@ def scrap_job_list():
         slack_msg.warning(f"Some jobs failed : {failures}")
 
 def merge_data():
+    ''' '''
+    slack_msg = SlackMessageSender()
+    job_file_name = os.path.join(DATA_HOME, "merged_jobs.csv")
 
     def _load_all_data(data_path=DATA_HOME):
         
@@ -106,29 +109,33 @@ def merge_data():
 
         return jobs_df.reset_index(drop=True)
 
-    job_file_name = os.path.join(DATA_HOME, "merged_jobs.csv")
+    try:
 
-    if os.path.isfile(job_file_name):
-        old = pd.read_csv(job_file_name)
-        jobs_df = _load_recent_data()
-        
-        merged = pd.concat([old, jobs_df], axis=0)
-        merged = merged.sort_values(
-        by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
-        )
-        merged = merged.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
-        merged["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        merged.to_csv(job_file_name, index=False)
-    else:
-        jobs_df = _load_all_data()
-        jobs_df = jobs_df.sort_values(
-        by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
-        )
-        jobs_df = jobs_df.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
-        jobs_df["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if os.path.isfile(job_file_name):
+            old = pd.read_csv(job_file_name)
+            jobs_df = _load_recent_data()
+            
+            merged = pd.concat([old, jobs_df], axis=0)
+            merged = merged.sort_values(
+            by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
+            )
+            merged = merged.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
+            merged["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            merged.to_csv(job_file_name, index=False)
+        else:
+            jobs_df = _load_all_data()
+            jobs_df = jobs_df.sort_values(
+            by=['company', 'job_title', 'job_link', 'deadline', 'group', 'timestamp']
+            )
+            jobs_df = jobs_df.drop_duplicates(['company', 'job_title', 'job_link', 'deadline', 'group'], keep="first")
+            jobs_df["last_updated"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        jobs_df.to_csv(job_file_name, index=False)
+            jobs_df.to_csv(job_file_name, index=False)
+
+    except Exception as e:
+        slack_msg.err(f"Merging data failed with : {e}")
+        raise e
 
 def scrap_job_texts():
     ''' '''
