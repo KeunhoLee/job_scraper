@@ -10,11 +10,13 @@ beautifulsoup4 = "*"
 requests = "*"
 pipfile = "*"
 fire = "*"
+gensim = "*"
 
 [dev-packages]
 python-dotenv = "*"
 tqdm = "*"
 ipykernel = "*"
+pykomoran = "*"
 
 [requires]
 python_version = "3.8"

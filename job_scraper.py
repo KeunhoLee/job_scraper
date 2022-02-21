@@ -103,7 +103,7 @@ class JobScraper(metaclass=ABCMeta):
         return self.job_df
 
 class KakaoJobScraper(JobScraper):
-
+    # TODO: 링크에서 중복을 만드는 불필요한 쿼리스트링 제거
     def __init__(self, driver):
         super().__init__(driver, "kakao")
         self.base_url = "https://careers.kakao.com"
@@ -141,7 +141,7 @@ class KakaoJobScraper(JobScraper):
                 if main_info is None:
                     continue
 
-                job_link = main_info["href"]
+                job_link = re.sub("\\?.*", "", main_info["href"])
                 job_title = main_info.find("h4", {"class":"tit_jobs"}).text
 
                 sub_titles = area_info.findAll("dt")
