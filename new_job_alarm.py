@@ -35,12 +35,12 @@ def main(*keywords):
                                         "attachments":[
                                             {
                                                 "fallback":f"새로운 관심공고 [{row.group}/{row.company}]",
-                                                "text":f"{row.group}/{row.company}: <{row.job_link}|{row.job_title}>",
+                                                "text":f"[{row.group}/{row.company}] <{row.job_link}|{row.job_title}>",
                                                 "color":"good",
                                                 "fields":[
                                                     {
                                                     "value":f"관심 키워드 : {row.keyword}",
-                                                    "short":True
+                                                    "short":False
                                                     }
                                                 ]
                                             }
