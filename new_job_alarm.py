@@ -1,17 +1,18 @@
 #-*- coding:utf-8 -*-
 
 import os
+import requests
+
 import pandas as pd
 import fire
 from utils.SlackMessageSender import SlackMessageSender
+
+SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
 
 def main(*keywords):
     alarm_dict = {}
 
     slack_log = SlackMessageSender()
-    slack_direct_msg = SlackMessageSender(channel="#취업공고",
-                                          username="취업공고알리미")
-
 
     if os.path.exists("./storage/new.csv"):
         new_jobs = pd.read_csv("./storage/new.csv")
@@ -28,9 +29,24 @@ def main(*keywords):
         
         if alarm_dict:
             for row in alarm_dict.values():
-                slack_direct_msg.info(
-                    f"새로운 관심공고 [{row.group}/{row.company}] {row.job_title} : {row.keyword}"
-                    )
+                requests.post(SLACK_WEBHOOK_URL, json={
+                                        "channel" : "#취업공고",
+                                        "username": "취업공고알리미",
+                                        "attachments":[
+                                            {
+                                                "fallback":f"새로운 관심공고 [{row.group}/{row.company}]",
+                                                "text":f"{row.group}/{row.company}: <{row.job_link}|{row.job_title}>",
+                                                "color":"good",
+                                                "fields":[
+                                                    {
+                                                    "value":f"관심 키워드 : {row.keyword}",
+                                                    "short":True
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                )
         else:
             slack_log.info("새로운 관심 공고가 없습니다.")
 
