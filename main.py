@@ -8,7 +8,8 @@ import fire
 from job_scraper import (JobScraper,
                         WebDriver, 
                         KakaoJobScraper, 
-                        NaverJobScraper, 
+                        NaverJobScraper,
+                        NaverJobScraper_new, 
                         LineJobScraper, 
                         CoupangJobScraper, 
                         WoowahanJobScraper)
@@ -31,17 +32,26 @@ def scrap_job_list():
         print("kakao ok")
     except Exception as e:
         failures.append("kakao")
-        slack_msg.err(f"Kakao job failed with : {e}") 
+        slack_msg.error(f"Kakao job failed with : {e}") 
 
-    try:
-        print("naver start")
-        naver_scraper = NaverJobScraper(web_driver)
-        naver_scraper.scrap()
-        print("naver ok")
-    except Exception as e:
-        failures.append("naver")
-        slack_msg.err(f"Naver job failed with : {e}") 
+    # try:
+    #     print("naver start")
+    #     naver_scraper = NaverJobScraper(web_driver)
+    #     naver_scraper.scrap()
+    #     print("naver ok")
+    # except Exception as e:
+    #     failures.append("naver")
+    #     slack_msg.error(f"Naver job failed with : {e}") 
     
+    try:
+        print("naver_new start")
+        naver_scraper = NaverJobScraper_new(web_driver)
+        naver_scraper.scrap()
+        print("naver_new ok")
+    except Exception as e:
+        failures.append("naver_new")
+        slack_msg.error(f"Naver_new job failed with : {e}") 
+
     try:
         print("line start")
         line_scraper = LineJobScraper(web_driver)
@@ -49,7 +59,7 @@ def scrap_job_list():
         print("line ok")
     except Exception as e:
         failures.append("line")
-        slack_msg.err(f"Line job failed with : {e}") 
+        slack_msg.error(f"Line job failed with : {e}") 
 
     try:
         print("coupang start")
@@ -58,7 +68,7 @@ def scrap_job_list():
         print("coupang ok")
     except Exception as e:
         failures.append("coupang")
-        slack_msg.err(f"Coupang job failed with : {e}") 
+        slack_msg.error(f"Coupang job failed with : {e}") 
 
     try:
         print("woowahan start")
@@ -67,7 +77,7 @@ def scrap_job_list():
         print("woowahan ok")
     except Exception as e:
         failures.append("woowahan")
-        slack_msg.err(f"Woowahan job failed with : {e}")
+        slack_msg.error(f"Woowahan job failed with : {e}")
 
     web_driver.close()
     
@@ -139,7 +149,7 @@ def merge_data():
             jobs_df.to_csv(job_file_name, index=False)
 
     except Exception as e:
-        slack_msg.err(f"Merging data failed with : {e}")
+        slack_msg.error(f"Merging data failed with : {e}")
         raise e
 
 def scrap_job_texts():

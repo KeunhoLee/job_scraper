@@ -1,5 +1,6 @@
 #-*- coding:utf-8 -*-
 
+# Crawl Jobs
 import os
 import re
 import time
@@ -16,8 +17,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+import chromedriver_autoinstaller
 
-CHROME_DRIVER_PATH = os.environ["CHROME_DRIVER_PATH"]
+chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
+CHROME_DRIVER_PATH = f'/Users/keunholee/Projects/chromedrivers/{chrome_ver}/chromedriver'
+
+if os.path.exists(CHROME_DRIVER_PATH):
+    print(f"chrom driver is insatlled: {CHROME_DRIVER_PATH}")
+else:
+    print(f"install the chrome driver(ver: {chrome_ver})")
+    chromedriver_autoinstaller.install(False, "/Users/keunholee/Projects/chromedrivers")
+
+# CHROME_DRIVER_PATH = os.environ["CHROME_DRIVER_PATH"]
 
 class WebDriver:
     def __init__(self):
@@ -249,7 +260,81 @@ class NaverJobScraper(JobScraper):
         job_df = job_df[["company", "job_title", "job_link", "skill_set_tag", "deadline"]]
 
         self.job_df = job_df.reset_index(drop=True)
+class NaverJobScraper_new(JobScraper):
 
+    def __init__(self, driver):
+        super().__init__(driver, "naver_new")
+        self.base_url = "https://recruit.navercorp.com"
+        self.job_cond = "/rcrt/list.do"
+        self.result = []
+
+    def _init_for_scrap(self):
+        
+        self.driver.browse(self.base_url + self.job_cond)
+        self.driver.implicitly_wait(2)
+
+        # Get scroll height
+        last_height = self.driver.driver.execute_script("return document.body.scrollHeight")
+
+        while True:
+            # Scroll down to bottom
+            self.driver.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+            # Wait to load page
+            time.sleep(1)
+
+            # Calculate new scroll height and compare with last scroll height
+            new_height = self.driver.driver.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+
+    def _scrap_job_info(self):
+
+        html = self.driver.get_page_src()
+        soup = BeautifulSoup(html, 'html.parser')
+        card_list = soup.find('ul', {"class": "card_list"}).findAll("li", {"class":"card_item"})
+
+        company_dict = {"navercloud":"Naver_Cloud",
+                "nfin":"NAVER_FINANCIAL",
+                "labs":"NAVER_LABS",
+                "snow":"SNOW",
+                "worksmobile":"WORKS_MOBILE",
+                "webtoon":"Naver_Webtoon",
+                "naver":"NAVER",
+                "ins":"NAVER_I&S"}
+
+        for card in card_list:
+            company = card.find("div", {"class":"company_logo"}).find("div")["class"][0]
+            job_link = re.sub("[^0-9]", "", card.a["onclick"])
+            job_link = "/rcrt/view.do?annoId=" + job_link
+            job_title = card.find("h4", {"class":"card_title"}).get_text()
+
+            deadline = card.findAll("dd", {"class":"info_text"})[-1].get_text()
+            skill_set_tag = []
+
+            for tag in card.findAll("dd", {"class":"info_text"})[:-1]:    
+                skill_set_tag.append(tag.get_text())
+
+            self.result.append((company_dict.get(company, company), job_link, job_title, deadline, skill_set_tag))
+
+    def _format_job_info(self):
+
+        job_df = pd.DataFrame()
+
+        for r in self.result:
+            
+            tmp = {"company":r[0],
+                   "job_link":self.base_url + r[1], 
+                   "job_title":r[2],
+                   "deadline":r[3],
+                   "skill_set_tag":[r[4]]}
+
+            job_df = pd.concat([job_df, pd.DataFrame(tmp, columns=tmp.keys())], axis=0)
+
+        job_df = job_df[["company", "job_title", "job_link", "skill_set_tag", "deadline"]]
+
+        self.job_df = job_df.reset_index(drop=True)
 class LineJobScraper(JobScraper):
 
     def __init__(self, driver):

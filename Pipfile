@@ -11,6 +11,9 @@ requests = "*"
 pipfile = "*"
 fire = "*"
 gensim = "*"
+chromedriver-autoinstaller = "*"
+matplotlib = "*"
+seaborn = "*"
 
 [dev-packages]
 python-dotenv = "*"
